@@ -1,0 +1,31 @@
+name: Replace organization banner
+
+on:
+  push:
+    paths:
+      - '.github/workflows/replace-banner.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  replace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Restore exact uploaded WebP
+        shell: bash
+        run: |
+          cat .tmp-banner/chunk1.b64 .tmp-banner/chunk2.b64 .tmp-banner/chunk3.b64 .tmp-banner/chunk4.b64 .tmp-banner/chunk5.b64 .tmp-banner/chunk6.b64 | base64 --decode > profile/banner.webp
+          echo '2e459583817ba24df5af7060c50c74dc4cab4a5178af62cf07c6b8438e545ea3  profile/banner.webp' | sha256sum --check --strict
+      - name: Commit banner and remove staging files
+        shell: bash
+        run: |
+          rm -rf .tmp-banner .github/workflows/replace-banner.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'docs: replace organization banner'
+          git push
